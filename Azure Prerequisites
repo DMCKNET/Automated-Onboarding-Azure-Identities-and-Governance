@@ -1,0 +1,19 @@
+# Azure Prerequisites
+
+## Admin Account
+Ensure you have an admin account with the necessary privileges to create and manage resources in Azure. This account will be used to set up the Logic App, Entra ID configurations, and other resources.
+
+## Creating Groups in Entra ID
+1. Navigate to Azure Entra ID.
+2. Under the **Groups** section, click on **+ New group**.
+3. Fill in the required details for the new group (e.g., Group Name, Group Description).
+4. Click **Create** to set up the group. This group will be used to assign the new users.
+
+## Creating Resource Groups via Azure Resource Manager (ARM)
+1. Navigate to **Resource groups**.
+2. Click on **+ Create**.
+3. Fill in the necessary details for the new resource group (e.g., Resource Group Name, Subscription, Resource Location).
+4. Click **Review + create**, then **Create** to finalize the resource group.
+5. Ensure that this resource group is properly configured as it will be used to allocate resources to new users through ARM.
+
+By following these steps, you will have the necessary prerequisites set up in Azure to begin automating the onboarding process using Logic Apps and ARM.
