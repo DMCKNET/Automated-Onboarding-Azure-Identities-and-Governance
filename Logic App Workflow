@@ -25,11 +25,6 @@
      6. **Create or update a template deployment:** Use Azure Resource Manager to add the user to a working resource group, which could contain access to resources like virtual machines.
      7. **Send Email (V3):** Sending an email to notify the new employee and provide them with login information.
 
-### Workflow Screenshot
-Below is a screenshot of the Logic App workflow:
-
-![Logic App Workflow](https://github.com/DMCKNET/Automated-Onboarding-Azure-Identities-and-Governance/blob/main/logic%20apps%20designer%20merged.png
-
 ### Best Practices
 - **Modular Design:** Break down your workflow into modular components for easier maintenance and updates.
 - **Error Handling:** Implement error handling actions to manage any issues that arise during the workflow.
