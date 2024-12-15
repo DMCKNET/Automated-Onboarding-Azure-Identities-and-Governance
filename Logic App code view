@@ -1,6 +1,7 @@
 ## Code View
 
-This Logic App code has been sanitized to protect sensitive information, such as passwords and email addresses. It outlines the steps used for configuration, including variable initialization, user creation, group assignment, and sending a welcome email. This ensures a secure and clear reference for your automated onboarding process.
+This Logic App code has been sanitized to protect sensitive information, such as passwords and email addresses. It outlines the steps used for configuration, including variable initialization, 
+user creation, group assignment, and sending a welcome email. This ensures a secure and clear reference for your automated onboarding process.
 
 
 {
