@@ -28,7 +28,7 @@
 ### Workflow Screenshot
 Below is a screenshot of the Logic App workflow:
 
-![Logic App Workflow](https://github.com/DMCKNET/Automated-Onboarding-Azure-Identities-and-Governance/blob/main/logic%20apps%20designer%20merged.png)
+![Logic App Workflow](https://github.com/DMCKNET/Automated-Onboarding-Azure-Identities-and-Governance/blob/main/logic%20apps%20designer%20merged.png
 
 ### Best Practices
 - **Modular Design:** Break down your workflow into modular components for easier maintenance and updates.
