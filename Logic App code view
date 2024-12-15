@@ -1,0 +1,379 @@
+## Code View
+
+This Logic App code has been sanitized to protect sensitive information, such as passwords and email addresses. It outlines the steps used for configuration, including variable initialization, user creation, group assignment, and sending a welcome email. This ensures a secure and clear reference for your automated onboarding process.
+
+
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "contentVersion": "1.0.0.0",
+        "triggers": {
+            "When_a_new_email_arrives_(V3)": {
+                "splitOn": "@triggerBody()?['value']",
+                "type": "ApiConnectionNotification",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['office365']['connectionId']"
+                        }
+                    },
+                    "fetch": {
+                        "pathTemplate": {
+                            "template": "/v3/Mail/OnNewEmail"
+                        },
+                        "method": "get",
+                        "queries": {
+                            "to": "*your company HR shared email*",
+                            "importance": "Any",
+                            "fetchOnlyWithAttachment": false,
+                            "includeAttachments": false,
+                            "subjectFilter": "New Hire",
+                            "folderPath": "Inbox"
+                        }
+                    },
+                    "subscribe": {
+                        "body": {
+                            "NotificationUrl": "@listCallbackUrl()"
+                        },
+                        "pathTemplate": {
+                            "template": "/GraphMailSubscriptionPoke/$subscriptions"
+                        },
+                        "method": "post",
+                        "queries": {
+                            "importance": "Any",
+                            "fetchOnlyWithAttachment": false,
+                            "folderPath": "Inbox"
+                        }
+                    }
+                }
+            }
+        },
+        "actions": {
+            "Create_user": {
+                "runAfter": {
+                    "ComposePrincipleName": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azuread']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "accountEnabled": true,
+                        "displayName": "@{outputs('ComposeGivenName')}@{outputs('ComposeSurname')}",
+                        "mailNickname": "@outputs('Compose_mailNickname')",
+                        "passwordProfile": {
+                            "password": * create a temporary password *
+                        },
+                        "userPrincipalName": "@outputs('ComposePrincipleName')",
+                        "givenName": "@outputs('ComposeGivenName')",
+                        "surname": "@outputs('ComposeSurname')"
+                    },
+                    "path": "/v1.0/users"
+                }
+            },
+            "Add_user_to_group": {
+                "runAfter": {
+                    "Create_user": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azuread']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "@@odata.id": "@body('Create_user')?['id']"
+                    },
+                    "path": "/v1.0/groups/@{encodeURIComponent('* your subscription *')}/members/$ref"
+                }
+            },
+            "Create_or_update_a_template_deployment": {
+                "runAfter": {
+                    "Add_user_to_group": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['arm']['connectionId']"
+                        }
+                    },
+                    "method": "put",
+                    "body": {
+                        "properties": {
+                            "template": {
+                                "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                                "contentVersion": "1.0.0.0",
+                                "parameters": {
+                                    "roleDefinitionId": {
+                                        "type": "string",
+                                        "defaultValue": "/subscriptions/* your subscription */providers/Microsoft.Authorization/roleDefinitions/* your subscription *"
+                                    },
+                                    "principalId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "resources": [
+                                    {
+                                        "type": "Microsoft.Authorization/roleAssignments",
+                                        "apiVersion": "2022-04-01",
+                                        "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'))]",
+                                        "location": "[resourceGroup().location]",
+                                        "properties": {
+                                            "roleDefinitionId": "[parameters('roleDefinitionId')]",
+                                            "principalId": "[parameters('principalId')]"
+                                        }
+                                    }
+                                ],
+                                "outputs": {
+                                    "roleAssignmentId": {
+                                        "type": "string",
+                                        "value": "[resourceId('Microsoft.Authorization/roleAssignments', guid(parameters('principalId'), parameters('roleDefinitionId')))]"
+                                    }
+                                }
+                            },
+                            "parameters": {
+                                "roleDefinitionId": {
+                                    "value": "/subscriptions/* your subscription */providers/Microsoft.Authorization/roleDefinitions/* your subscription *"
+                                },
+                                "principalId": {
+                                    "value": "@{body('Create_user')?['id']}"
+                                }
+                            },
+                            "mode": "Incremental"
+                        }
+                    },
+                    "path": "/subscriptions/@{encodeURIComponent('* your subscription *')}/resourcegroups/@{encodeURIComponent('OnboardingDemoConnectionRG')}/providers/Microsoft.Resources/deployments/@{encodeURIComponent('AssignRoleToUserDeployment')}",
+                    "queries": {
+                        "x-ms-api-version": "2016-06-01",
+                        "wait": false
+                    }
+                }
+            },
+            "Send_Email_(V3)": {
+                "runAfter": {
+                    "Create_or_update_a_template_deployment": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['smtp']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "From": "*your company azure admin shared email for onboarding*",
+                        "To": "@replace(variables('cleanedEmail'), '\"', '')",
+                        "Subject": "Welcome to the Team!",
+                        "Body": "<p class=\"editor-paragraph\">Dear , @{outputs('Compose_full_name')}<br><br><br>Welcome to the team! We are excited to have you on board.<br><br>Please find below your access details and instructions to get started:<br><br>- Access your account at: https://portal.azure.com<br>- Your email: @{replace(variables('cleanedEmail'), '\"', '')}<br>- Temporary password: *your created temp password*<br><br>Feel free to reach out to the IT department if you need any assistance.<br><br>Best regards,<br>Your IT Team</p>"
+                    },
+                    "path": "/SendEmailV3"
+                }
+            },
+            "Initialize_variable_employee_name": {
+                "runAfter": {
+                    "Compose": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "employeeName",
+                            "type": "string",
+                            "value": "@if(\r\n  contains(string(body('Compose')), 'Name: '),\r\n  trim(\r\n    substring(\r\n      string(body('Compose')),\r\n      add(indexOf(string(body('Compose')), 'Name: '), 6),\r\n      sub(\r\n        indexOf(string(body('Compose')), 'Email: '),\r\n        add(indexOf(string(body('Compose')), 'Name: '), 6)\r\n      )\r\n    )\r\n  ),\r\n  'Unknown Name'\r\n)"
+                        }
+                    ]
+                }
+            },
+            "Compose": {
+                "runAfter": {},
+                "type": "Compose",
+                "inputs": "@triggerBody()?['body']"
+            },
+            "ComposeGivenName": {
+                "runAfter": {
+                    "ComposeParsedEmail": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Compose",
+                "inputs": "@split(variables('employeeName'), ' ')[0]"
+            },
+            "ComposeSurname": {
+                "runAfter": {
+                    "ComposeGivenName": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Compose",
+                "inputs": "@split(variables('employeeName'), ' ')[1]"
+            },
+            "ComposePrincipleName": {
+                "runAfter": {
+                    "Compose_mailNickname": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Compose",
+                "inputs": "@concat(\r\n  split(replace(variables('employeeName'), '<br>', ' '), ' ')[0],\r\n  '_',\r\n  split(replace(variables('employeeName'), '<br>', ' '), ' ')[1],\r\n  '*your azure available domain name*'\r\n)"
+            },
+            "Initialize_variable_for_raw_email": {
+                "runAfter": {
+                    "Initialize_variable_stripped_content": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "RawEmail",
+                            "type": "string",
+                            "value": "@if(\r\n  contains(variables('strippedContent'), 'Email: '),\r\n  trim(\r\n    split(\r\n      split(variables('strippedContent'), 'Email: ')[1], ' '\r\n    )[0]\r\n  ),\r\n  'Unknown Email'\r\n)"
+                        }
+                    ]
+                }
+            },
+            "Initialize_variable_stripped_content": {
+                "runAfter": {
+                    "Initialize_variable_employee_name": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "strippedContent",
+                            "type": "string",
+                            "value": "@replace(\r\n  replace(\r\n    replace(\r\n      replace(\r\n        replace(outputs('Compose'), '<a href=\"mailto:', ''),\r\n        '\">', ' '\r\n      ),\r\n      '</a>', ''\r\n    ),\r\n    '&quot;', ''\r\n  ),\r\n  '&lt;', ''\r\n)"
+                        }
+                    ]
+                }
+            },
+            "Initialize_variable_cleaned_email": {
+                "runAfter": {
+                    "Initialize_variable_for_raw_email": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "cleanedEmail",
+                            "type": "string",
+                            "value": "@replace(trim(variables('rawEmail')), '\"', '')"
+                        }
+                    ]
+                }
+            },
+            "ComposeParsedEmail": {
+                "runAfter": {
+                    "Set_variable_for_cleaned_email": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Compose",
+                "inputs": "@variables('cleanedEmail')"
+            },
+            "Set_variable_for_name": {
+                "runAfter": {
+                    "Initialize_variable_cleaned_email": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "SetVariable",
+                "inputs": {
+                    "name": "employeeName",
+                    "value": "@if(contains(outputs('Compose'), 'Name: '), trim(split(split(replace(outputs('Compose'), '<br>', ' '), 'Name: ')[1], '\\\\n')[0]), 'Unknown Name')\r\n"
+                }
+            },
+            "Set_variable_for_cleaned_email": {
+                "runAfter": {
+                    "Set_variable_for_name": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "SetVariable",
+                "inputs": {
+                    "name": "cleanedEmail",
+                    "value": "@trim(variables('rawEmail'))"
+                }
+            },
+            "Compose_mailNickname": {
+                "runAfter": {
+                    "Compose_full_name": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Compose",
+                "inputs": "@concat(\r\n  split(variables('employeeName'), ' ')[0],\r\n  '.',\r\n  split(variables('employeeName'), ' ')[1]\r\n)\r\n"
+            },
+            "Compose_full_name": {
+                "runAfter": {
+                    "ComposeSurname": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Compose",
+                "inputs": "@{concat(\r\n  split(variables('employeeName'), ' ')[0],\r\n  ' ',\r\n  split(variables('employeeName'), ' ')[1]\r\n)}\n"
+            }
+        },
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "type": "Object",
+                "defaultValue": {}
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "office365": {
+                    "id": "/subscriptions/ * your subscription *
+                    "connectionId": "/subscriptions/* your subscription */resourceGroups/EmployeeOnboardingRG/providers/Microsoft.Web/connections/office365",
+                    "connectionName": "office365"
+                },
+                "azuread": {
+                    "id": "/subscriptions/* your subscription */providers/Microsoft.Web/locations/westus2/managedApis/azuread",
+                    "connectionId": "/subscriptions/* your subscription */resourceGroups/EmployeeOnboardingRG/providers/Microsoft.Web/connections/azuread",
+                    "connectionName": "azuread"
+                },
+                "arm": {
+                    "id": "/subscriptions/* your subscription */providers/Microsoft.Web/locations/westus2/managedApis/arm",
+                    "connectionId": "/subscriptions/* your subscription */resourceGroups/EmployeeOnboardingRG/providers/Microsoft.Web/connections/arm",
+                    "connectionName": "arm",
+                    "connectionProperties": {
+                        "authentication": {
+                            "type": "ManagedServiceIdentity"
+                        }
+                    }
+                },
+                "smtp": {
+                    "id": "/subscriptions/* your subscription */providers/Microsoft.Web/locations/westus2/managedApis/smtp",
+                    "connectionId": "/subscriptions/* your subscription */resourceGroups/EmployeeOnboardingRG/providers/Microsoft.Web/connections/smtp",
+                    "connectionName": "smtp"
+                }
+            }
+        }
+    }
+}
