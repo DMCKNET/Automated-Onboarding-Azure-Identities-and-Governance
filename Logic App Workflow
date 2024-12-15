@@ -1,0 +1,36 @@
+# Logic App Workflow Design
+
+## Designing the Workflow
+1. Navigate to Azure Logic Apps.
+2. Click on **+ Add** to create a new Logic App.
+3. Fill in the necessary details (e.g., Logic App Name, Resource Group, Location).
+4. Click **Review + create**, then **Create** to finalize the setup.
+5. Assign the Logic App Contributor role to give Azure Resource Manager permissions:
+   - Navigate to your subscription in the Azure portal.
+   - Select **Access control (IAM)** on the left-hand menu.
+   - Click on **+ Add role assignment**.
+   - In the **Role** dropdown, select **Logic App Contributor**.
+   - In the **Assign access to** dropdown, select **Logic App**.
+   - Search for and select your Logic App.
+   - Click **Save** to assign the role. This step is crucial to ensure your Logic App has the necessary permissions to manage resources via Azure Resource Manager.
+6. Open your new Logic App and click on **Edit**.
+7. Design your workflow by adding the necessary triggers and actions:
+   - **Trigger:** When a new email arrives (V3).
+   - **Actions:** Add actions to the workflow to automate the onboarding process. These actions can include:
+     1. **Initialize Variable:** Initialize variables for different purposes such as setting up the `mailNickname`, extracting HTML from the email address, configuring the principal name, and preparing the display name.
+     2. **Set Variable:** Set the initialized variables with the appropriate values.
+     3. **Compose:** Use the Compose action to format and store data such as the given name, surname, full name, mail nickname, and principal name.
+     4. **Create user:** Creating a new user account.
+     5. **Add user to group:** Adding the new user to a specific group.
+     6. **Create or update a template deployment:** Use Azure Resource Manager to add the user to a working resource group, which could contain access to resources like virtual machines.
+     7. **Send Email (V3):** Sending an email to notify the new employee and provide them with login information.
+
+### Workflow Screenshot
+Below is a screenshot of the Logic App workflow:
+
+![Logic App Workflow](https://github.com/DMCKNET/Automated-Onboarding-Azure-Identities-and-Governance/blob/main/logic%20apps%20designer%20merged.png)
+
+### Best Practices
+- **Modular Design:** Break down your workflow into modular components for easier maintenance and updates.
+- **Error Handling:** Implement error handling actions to manage any issues that arise during the workflow.
+- **Monitoring:** Use Azure Monitor and Logic App run history to track the performance and success of your workflows
