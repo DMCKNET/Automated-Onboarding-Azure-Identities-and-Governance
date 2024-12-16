@@ -19,6 +19,9 @@ Set up a new Azure AD instance (if not already present) using the Azure portal. 
 ### Logic App Workflow Design
 Design a Logic App workflow triggered by an event, such as an entry in a SharePoint list or an email to a specific mailbox, indicating a new employee hire. This workflow will automate various tasks involved in the onboarding process.
 
+## [Logic App Workflow](Logic App Workflow)
+## [Logic App Code View](Logic App code view)
+
 ### Azure AD User Creation
 Use the Azure AD connector in Logic Apps to automatically create a new user in Azure Entra ID based on the details provided in the trigger event. This eliminates the need for manual user creation and ensures consistency.
 
