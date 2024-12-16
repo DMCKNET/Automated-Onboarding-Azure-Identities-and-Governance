@@ -30,5 +30,5 @@ Leverage the Email connector in Logic Apps to send a welcome email to the new hi
 ### Monitoring and Review
 Monitor and review the onboarding process through Logic Apps runs history and Azure AD logs to ensure smooth operations. Regular reviews help in identifying any issues and improving the onboarding process continuously.
 
-![workflow](logic apps designer merged.png)
+![workflow](designermerged.png)
 
