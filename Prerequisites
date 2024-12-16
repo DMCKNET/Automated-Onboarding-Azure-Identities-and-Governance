@@ -1,4 +1,4 @@
-# Azure Prerequisites
+# Prerequisites
 
 ## Admin Account
 Ensure you have an admin account with the necessary privileges to create and manage resources in Azure. This account will be used to set up the Logic App, Entra ID configurations, and other resources.
