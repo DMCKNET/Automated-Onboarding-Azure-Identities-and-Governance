@@ -1,21 +1,6 @@
 # Automated-Onboarding-Azure-Identities-and-Governance
 Onboard Automator streamlines and automates employee onboarding into Azure Entra ID, assigning necessary Azure resources via Logic Apps and Azure Resource Manager. It simplifies user creation, role assignments, and resource provisioning, significantly reducing workload and administrative overhead.
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Azure Services Used](#azure-services-used)
-3. [Steps](#steps)
-   1. [Azure AD Setup](#azure-ad-setup)
-   2. [Logic App Workflow Design](#logic-app-workflow-design)
-   3. [Azure AD User Creation](#azure-ad-user-creation)
-   4. [Role and Group Assignment](#role-and-group-assignment)
-   5. [Resource Provisioning](#resource-provisioning)
-   6. [Welcome Email](#welcome-email)
-   7. [Monitoring and Review](#monitoring-and-review)
-
-## Overview
-Onboard Automator simplifies the employee onboarding process by automating Azure AD identity management and resource allocation, ensuring a seamless experience for new hires.
-
 ## Azure Services Used
 - **Azure Entra ID**
 - **Azure Logic Apps**
@@ -45,3 +30,4 @@ Leverage the Email connector in Logic Apps to send a welcome email to the new hi
 ### Monitoring and Review
 Monitor and review the onboarding process through Logic Apps runs history and Azure AD logs to ensure smooth operations. Regular reviews help in identifying any issues and improving the onboarding process continuously.
 
+(logic apps designer merged.png)
