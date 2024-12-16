@@ -9,7 +9,7 @@ Onboard Automator streamlines and automates employee onboarding into Azure Entra
 - **Azure Email Service** (part of Logic Apps connector)
 - **Azure Resource Manager**
 
-[Prerequistites](Prerequisites)
+## [Prerequistites](Prerequisites)
 
 ## Steps
 
